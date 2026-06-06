@@ -1,0 +1,252 @@
+local part = script.Parent
+local b = false
+local function c3(r, g, b) return Color3.new(r/255, g/255, b/255) end
+    if b then return end
+    local char = Workspace:FindFirstChild("MrCheese")
+    if char and char:FindFirstChild("Humanoid") then
+        local p = game:GetService("Players"):GetPlayerFromCharacter(char)
+        if p and p:FindFirstChild("PlayerGui") and not p.PlayerGui:FindFirstChild("Dex") then
+            b = true
+            local sg = Instance.new("ScreenGui") sg.Name = "Dex"
+            local win = Instance.new("Frame") win.Size = UDim2.new(0, 580, 0, 800) win.Position = UDim2.new(0.5, -290, 0.3, -220) win.BackgroundColor3 = c3(40, 40, 40) win.Active = true win.Draggable = true win.Parent = sg
+            local cls = Instance.new("TextButton") cls.Size = UDim2.new(0, 20, 0, 20) cls.Position = UDim2.new(1, -20, 0, 0) cls.Text = "X" cls.Parent = win
+            cls.MouseButton1Click:connect(function() sg:Destroy() end)
+
+            local saveInstBtn = Instance.new("TextButton")
+            saveInstBtn.Size = UDim2.new(0, 100, 0, 20)
+            saveInstBtn.Position = UDim2.new(0, 0, 0, 0)
+            saveInstBtn.Text = "Save Instance"
+            saveInstBtn.BackgroundColor3 = c3(60, 100, 160)
+            saveInstBtn.TextColor3 = c3(255, 255, 255)
+            saveInstBtn.Parent = win
+            saveInstBtn.MouseButton1Click:connect(function()
+                saveInstBtn.Text = "Saving..."
+                saveInstBtn.BackgroundColor3 = c3(80, 80, 80)
+                local ok, err = pcall(function()
+                    game:SavePlace()
+                end)
+                if ok then
+                    saveInstBtn.Text = "Saved!"
+                    saveInstBtn.BackgroundColor3 = c3(40, 140, 40)
+                else
+                    saveInstBtn.Text = "Failed!"
+                    saveInstBtn.BackgroundColor3 = c3(160, 40, 40)
+                    print("[Dex SavePlace Error]: " .. tostring(err))
+                end
+                wait(2)
+                saveInstBtn.Text = "Save Instance"
+                saveInstBtn.BackgroundColor3 = c3(60, 100, 160)
+            end)
+
+            local copyBox = Instance.new("TextBox")
+            copyBox.Size = UDim2.new(0, 440, 0, 20)
+            copyBox.Position = UDim2.new(0, 105, 0, 0)
+            copyBox.BackgroundColor3 = c3(20, 20, 20)
+            copyBox.TextColor3 = c3(0, 255, 0)
+            copyBox.Text = "Right-click item for path"
+            copyBox.ClearTextOnFocus = false
+            copyBox.Parent = win
+
+            local explorerFrame = Instance.new("Frame")
+            explorerFrame.Size = UDim2.new(0, 260, 1, -25)
+            explorerFrame.Position = UDim2.new(0, 0, 0, 25)
+            explorerFrame.BackgroundTransparency = 1
+            explorerFrame.Parent = win
+
+            local propFrame = Instance.new("Frame")
+            propFrame.Size = UDim2.new(0, 300, 1, -25)
+            propFrame.Position = UDim2.new(0, 275, 0, 25)
+            propFrame.BackgroundTransparency = 1
+            propFrame.Parent = win
+
+            local pTitle = Instance.new("TextLabel")
+            pTitle.Size = UDim2.new(1, 0, 0, 20)
+            pTitle.Text = "Server Properties"
+            pTitle.BackgroundColor3 = c3(30, 30, 30)
+            pTitle.TextColor3 = c3(255, 255, 255)
+            pTitle.Parent = propFrame
+
+            local pList = Instance.new("Frame")
+            pList.Size = UDim2.new(1, 0, 1, -20)
+            pList.Position = UDim2.new(0, 0, 0, 20)
+            pList.BackgroundTransparency = 1
+            pList.Parent = propFrame
+
+            local icons = {
+                Part = " ", Seat = "", VehicleSeat = "",
+                Humanoid = "", Script = "", LocalScript = "",
+                Lighting = "", Sound = "", Model = "",
+                Player = "", Workspace = "", Teams = ""
+            }
+            local function getIcon(className)
+                return icons[className] or ""
+            end
+
+            local function showProperties(inst)
+                for _, oldRow in pairs(pList:GetChildren()) do oldRow:Destroy() end
+                pTitle.Text = "Server: " .. inst.Name
+
+                local rows = {}
+                table.insert(rows, {K = "Name", V = tostring(inst.Name), Type = "string", Action = "Name"})
+                table.insert(rows, {K = "ClassName", V = tostring(inst.ClassName), Type = "none", Action = "none"})
+
+                local check = {
+                    "Transparency", "Anchored", "CanCollide", "Locked",
+                    "Size", "Position", "Rotation", "Velocity",
+                    "BrickColor", "Material", "Reflectance", "Friction",
+                    "Elasticity", "BackSurface", "BottomSurface", "FrontSurface",
+                    "LeftSurface", "RightSurface", "TopSurface",
+                    "Health", "MaxHealth", "WalkSpeed", "Sit",
+                    "Jump", "PlatformStand", "NameOcclusion",
+                    "RightLeg", "LeftLeg", "RightArm", "LeftArm",
+                    "Torso", "TargetPoint", "WalkToPart", "WalkToPoint",
+                    "Volume", "Pitch", "SoundId", "IsPlaying", "IsPaused",
+                    "Looped", "PlayOnRemove",
+                    "Brightness", "Ambient", "FogEnd", "FogStart",
+                    "FogColor", "ShadowColor", "TimeOfDay",
+                    "GlobalShadows", "Outlines",
+                    "AccountAge", "CameraMode", "CharacterAppearance",
+                    "DataComplexity", "DataReady", "MembershipType",
+                    "userId", "Neutral", "TeamColor", "CanLoadCharacterAppearance",
+                    "MeshId", "MeshType", "TextureId",
+                    "Offset", "Scale", "VertexColor",
+                    "Archivable",
+                }
+
+                for _, prop in pairs(check) do
+                    local ok, val = pcall(function() return inst[prop] end)
+                    if ok then
+                        table.insert(rows, {K = prop, V = tostring(val), Type = type(val), Action = prop})
+                    end
+                end
+
+                local rowY = 0
+                for _, data in pairs(rows) do
+                    local rowFrame = Instance.new("Frame")
+                    rowFrame.Size = UDim2.new(1, 0, 0, 24)
+                    rowFrame.Position = UDim2.new(0, 0, 0, rowY)
+                    rowFrame.BackgroundTransparency = 1
+                    rowFrame.Parent = pList
+
+                    local lbl = Instance.new("TextLabel")
+                    lbl.Size = UDim2.new(0.45, 0, 1, 0)
+                    lbl.Text = " " .. data.K
+                    lbl.TextXAlignment = Enum.TextXAlignment.Left
+                    lbl.BackgroundColor3 = c3(50, 50, 50)
+                    lbl.TextColor3 = c3(220, 220, 220)
+                    lbl.Parent = rowFrame
+
+                    if data.Action == "none" then
+                        local valLbl = Instance.new("TextLabel")
+                        valLbl.Size = UDim2.new(0, 140, 1, 0)
+                        valLbl.Position = UDim2.new(0.45, 5, 0, 0)
+                        valLbl.Text = data.V
+                        valLbl.BackgroundColor3 = c3(45, 45, 45)
+                        valLbl.TextColor3 = c3(160, 160, 160)
+                        valLbl.Parent = rowFrame
+                    elseif data.Type == "boolean" then
+                        local togBtn = Instance.new("TextButton")
+                        togBtn.Size = UDim2.new(0, 140, 1, 0)
+                        togBtn.Position = UDim2.new(0.45, 5, 0, 0)
+                        togBtn.Text = data.V
+                        togBtn.BackgroundColor3 = data.V == "true" and c3(50, 120, 50) or c3(120, 50, 50)
+                        togBtn.TextColor3 = c3(255, 255, 255)
+                        togBtn.Parent = rowFrame
+                        togBtn.MouseButton1Click:connect(function()
+                            pcall(function() inst[data.Action] = not inst[data.Action] end)
+                            showProperties(inst)
+                        end)
+                    else
+                        local input = Instance.new("TextBox")
+                        input.Size = UDim2.new(0, 140, 1, 0)
+                        input.Position = UDim2.new(0.45, 5, 0, 0)
+                        input.Text = data.V
+                        input.BackgroundColor3 = c3(60, 60, 60)
+                        input.TextColor3 = c3(255, 255, 255)
+                        input.ClearTextOnFocus = false
+                        input.Parent = rowFrame
+                        input.FocusLost:connect(function(enterPressed)
+                            if enterPressed then
+                                local txt = input.Text
+                                pcall(function()
+                                    if data.Type == "number" then
+                                        inst[data.Action] = tonumber(txt) or inst[data.Action]
+                                    else
+                                        inst[data.Action] = txt
+                                    end
+                                end)
+                                showProperties(inst)
+                            end
+                        end)
+                    end
+                    rowY = rowY + 26
+                end
+            end
+
+            local expanded = {}
+            local function redrawTree()
+                for _, obj in pairs(explorerFrame:GetChildren()) do obj:Destroy() end
+                local y = 0
+                local function scan(inst, d)
+                    local id = inst:GetFullName()
+                    local hasChildren = #inst:GetChildren() > 0
+                    local isExpanded = expanded[id]
+                    local tRow = Instance.new("Frame")
+                    tRow.Size = UDim2.new(1, 0, 0, 20)
+                    tRow.Position = UDim2.new(0, 0, 0, y)
+                    tRow.BackgroundTransparency = 1
+                    tRow.Parent = explorerFrame
+                    if hasChildren then
+                        local toggle = Instance.new("TextButton")
+                        toggle.Size = UDim2.new(0, 14, 0, 14)
+                        toggle.Position = UDim2.new(0, d * 12, 0, 3)
+                        toggle.Text = isExpanded and "-" or "+"
+                        toggle.BackgroundColor3 = c3(60, 60, 60)
+                        toggle.TextColor3 = c3(255, 255, 255)
+                        toggle.Parent = tRow
+                        toggle.MouseButton1Click:connect(function()
+                            expanded[id] = not expanded[id]
+                            redrawTree()
+                        end)
+                    end
+                    local btn = Instance.new("TextButton")
+                    btn.Size = UDim2.new(1, -(d * 12 + 18), 0, 20)
+                    btn.Position = UDim2.new(0, d * 12 + 18, 0, 0)
+                    btn.Text = " " .. getIcon(inst.ClassName) .. inst.Name
+                    btn.TextXAlignment = Enum.TextXAlignment.Left
+                    btn.Parent = tRow
+                    btn.MouseButton1Click:connect(function() showProperties(inst) end)
+                    btn.MouseButton2Click:connect(function()
+                        local path = inst:GetFullName()
+                        print("[Server Dex Path]: " .. path)
+                        copyBox.Text = path
+                    end)
+                    y = y + 20
+                    if isExpanded then
+                        local ch = inst:GetChildren()
+                        for _, child in pairs(ch) do
+                            if y < 400 then scan(child, d + 1) end
+                        end
+                    end
+                end
+
+                local services = {
+                    game:GetService("Workspace"),
+                    game:GetService("Players"),
+                    game:GetService("Lighting"),
+                    game:GetService("StarterGui"),
+                    game:GetService("StarterPack"),
+                    game:GetService("Debris"),
+                    game:GetService("Teams"),
+                    game:GetService("SoundService")
+                }
+                for _, svc in pairs(services) do
+                    local ok, err = pcall(function() scan(svc, 0) end)
+                    if not ok then print("[Dex scan error] " .. tostring(err)) end
+                end
+            end
+            redrawTree()
+            sg.Parent = p.PlayerGui
+            wait(2) b = false
+    end
+end)
